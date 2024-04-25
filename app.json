@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "conversorbtc",
+    "slug": "conversorbtc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/bitcoin.jpg",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.hemanz.conversorbtc"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7df85b6a-409a-4b58-94e2-80a97ad3e6a9"
+      }
+    }
+  }
+}
