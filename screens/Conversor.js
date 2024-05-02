@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, TextInput, Text, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
 const API_URL = 'https://api.coindesk.com/v1/bpi/currentprice/';
 
@@ -10,6 +11,18 @@ const App = () => {
   const [saldoBrl, setSaldoBrl] = useState('');
   const [btcToUsd, setBtcToUsd] = useState('');
   const [btcToBrl, setBtcToBrl] = useState('');
+  const [selectedOption, setSelectedOption] = useState('');
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleMenuOptionSelect = (option) => {
+    // Implemente a navegação para as telas correspondentes aqui
+    console.log('Opção selecionada:', option);
+  };
 
   const fetchBitcoinRate = async () => {
     try {
@@ -47,6 +60,24 @@ const App = () => {
 
   return (
     <View style={styles.container}>
+        <View style={styles.MenuContainer}>
+        <TouchableOpacity style={styles.menuIcon} onPress={toggleMenu}>
+          <Ionicons name={isMenuOpen ? 'close' : 'menu'} size={24} color="white" style={[styles.header, { top: 40, left: 20 }]} />
+        </TouchableOpacity>
+        {isMenuOpen && (
+          <View style={styles.menu}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuOptionSelect('Carteira')}>
+              <Text>Carteira</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuOptionSelect('Cotações')}>
+              <Text>Cotações</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuOptionSelect('Matérias')}>
+              <Text>Matérias</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
       <TextInput
         style={styles.input}
         placeholder="Digite o saldo em BTC"
@@ -122,6 +153,35 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  MenuContainer: {
+    flex: 0.5,
+    backgroundColor: '#fff',
+  },
+  menuIcon: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
+  },
+  menu: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: 200,
+    backgroundColor: '#f0f0f0',
+    zIndex: 2,
+  },
+  menuItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
