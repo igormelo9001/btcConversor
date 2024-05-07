@@ -9,7 +9,7 @@ const WithdrawScreen = () => {
   const handleWithdraw = async () => {
     // Lógica para realizar saque
     try {
-      const userWallet = /* Obtenha a chave privada da carteira do usuário */;
+      const userWallet = /* Obtenha a chave privada da carteira do usuário */
       await BitcoinService.sendBitcoin(userWallet.privateKey, receiverAddress, amount);
       // Exiba uma mensagem de sucesso
     } catch (error) {
