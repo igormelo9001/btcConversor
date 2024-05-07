@@ -44,6 +44,12 @@ const App = () => {
     setBtcToUsd('');
     setBtcToBrl('');
   };
+  const navigation = useNavigation();
+
+  const handleNavigation = () => {
+    // Navegar para a tela de Carteira
+    navigation.navigate('HomeScreen');
+  }
 
   return (
     <View style={styles.container}>
@@ -77,6 +83,9 @@ const App = () => {
       <Text style={styles.resultText}>
         <Text style={styles.resultLabelText}>BTC para USD:</Text> <Text style={styles.resultValueText}>{btcToUsd}</Text> | <Text style={styles.resultLabelText}>BTC para BRL:</Text> <Text style={styles.resultValueText}>{btcToBrl}</Text>
       </Text>
+      <TouchableOpacity style={styles.button} onPress={handleNavigation}>
+        <Text style={styles.buttonText}>Carteira</Text>
+      </TouchableOpacity>
     </View>
   );
 };
