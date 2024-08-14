@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, TextInput, Text, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
 const API_URL = 'https://api.coindesk.com/v1/bpi/currentprice/';
 
@@ -10,6 +11,8 @@ const App = () => {
   const [saldoBrl, setSaldoBrl] = useState('');
   const [btcToUsd, setBtcToUsd] = useState('');
   const [btcToBrl, setBtcToBrl] = useState('');
+
+  const navigation = useNavigation();
 
   const fetchBitcoinRate = async () => {
     try {
@@ -45,6 +48,10 @@ const App = () => {
     setBtcToBrl('');
   };
 
+  const handleCryptoBot = () => {
+    navigation.replace('CryptoBot');
+  }
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -73,6 +80,9 @@ const App = () => {
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleReset}>
         <Text style={styles.buttonText}>Resetar</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleCryptoBot}>
+        <Text style={styles.buttonText}>Trading cryptoBot</Text>
       </TouchableOpacity>
       <Text style={styles.resultText}>
         <Text style={styles.resultLabelText}>BTC para USD:</Text> <Text style={styles.resultValueText}>{btcToUsd}</Text> | <Text style={styles.resultLabelText}>BTC para BRL:</Text> <Text style={styles.resultValueText}>{btcToBrl}</Text>
