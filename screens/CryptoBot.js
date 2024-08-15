@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
+import Icon from 'react-native-vector-icons/Ionicons'; // Ícone de seta para voltar
 
 const SYMBOL = "BTCUSDT";
 const QUANTITY = 0.001;
@@ -10,6 +12,7 @@ const API_URL = "https://testnet.binance.vision";//https://api.binance.com";
 let intervalId;
 
 export default function App() {
+  const navigation = useNavigation(); // Hook para navegação
   const [isRunning, setIsRunning] = useState(false);
   const [price, setPrice] = useState(null);
   const [sma, setSma] = useState(null);
@@ -85,6 +88,10 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Icon name="arrow-back" size={24} color="#fff" />
+      </TouchableOpacity>
+      
       <Text style={styles.header}>botCrypto</Text>
       
       <TextInput
@@ -108,7 +115,9 @@ export default function App() {
       <Text style={styles.label}>SMA: {sma ? `$${sma}` : '---'}</Text>
       <Text style={styles.label}>Saldo: {balance ? `$${balance.toFixed(2)}` : '---'}</Text>
 
-      <Button title={isRunning ? "Parar" : "Iniciar"} onPress={toggleTrading} />
+      <TouchableOpacity style={styles.button} onPress={toggleTrading}>
+        <Text style={styles.buttonText}>{isRunning ? "Parar" : "Iniciar"}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -119,6 +128,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#000',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    padding: 10,
   },
   header: {
     fontSize: 32,
@@ -140,4 +155,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginVertical: 5,
   },
+  button: {
+    width: '80%',
+    padding: 15,
+    marginTop: 20,
+    borderWidth: 2,
+    borderColor: '#FFA500', // Laranja
+    borderRadius: 10, // Arredondamento das bordas
+    backgroundColor: '#000', // Preto
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFA500', // Laranja
+    fontSize: 18,
+  },
 });
+
