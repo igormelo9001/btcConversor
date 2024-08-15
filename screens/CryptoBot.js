@@ -86,13 +86,17 @@ export default function App() {
     return () => clearInterval(intervalId);
   }, []);
 
+  const handleGoBack = () => {
+    navigation.replace('Conversor');
+  }
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
         <Icon name="arrow-back" size={24} color="#fff" />
       </TouchableOpacity>
       
-      <Text style={styles.header}>botCrypto</Text>
+      <Text style={styles.header}>BotCrypto</Text>
       
       <TextInput
         style={styles.input}
