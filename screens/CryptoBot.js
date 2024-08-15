@@ -5,6 +5,7 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import Icon from 'react-native-vector-icons/Ionicons'; // Ícone de seta para voltar
 
+
 const SYMBOL = "BTCUSDT";
 const QUANTITY = 0.001;
 const API_URL = "https://testnet.binance.vision";//https://api.binance.com";
@@ -95,6 +96,10 @@ export default function App() {
       <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
         <Icon name="arrow-back" size={24} color="#fff" />
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.chartButton} onPress={() => navigation.navigate('CandlestickChart')}>
+        <Icon name="trending-up" size={24} color="#fff" />
+      </TouchableOpacity>
       
       <Text style={styles.header}>BotCrypto</Text>
       
@@ -137,6 +142,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     left: 20,
+    padding: 10,
+  },
+  chartButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
     padding: 10,
   },
   header: {
