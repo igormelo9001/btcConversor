@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Modal, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
@@ -27,6 +27,7 @@ export default function App() {
   const [secretKey, setSecretKey] = useState(TESTNET_SECRET_KEY); // Padrão para Testnet
   const [apiUrl, setApiUrl] = useState(TESTNET_API_URL); // Padrão para Testnet
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isInfoModalVisible, setIsInfoModalVisible] = useState(false); // Estado do modal de informações
 
   const calcSMA = (data) => {
     const closes = data.map(candle => parseFloat(candle[4]));
@@ -57,7 +58,7 @@ export default function App() {
   const newOrder = async (symbol, quantity, side) => {
     const order = { symbol, quantity, side, type: "MARKET", timestamp: Date.now() };
 
-    const signature = CryptoJS.HmacSHA256(new URLSearchParams(order).toString(), secretKey).toString(); // Substituindo por crypto-js
+    const signature = CryptoJS.HmacSHA256(new URLSearchParams(order).toString(), secretKey).toString();
 
     order.signature = signature;
 
@@ -88,13 +89,31 @@ export default function App() {
     setIsModalVisible(true);
   };
 
+  const verifyKeys = async () => {
+    try {
+      const response = await axios.get(`${MAINNET_API_URL}/api/v3/account`, {
+        headers: { "X-MBX-APIKEY": apiKey }
+      });
+      if (response.status === 200) {
+        setApiUrl(MAINNET_API_URL); // Se a resposta for válida, usar a URL da API de produção
+        setIsModalVisible(false);
+        Alert.alert('Sucesso', 'Chaves válidas! Usando conta real.');
+      }
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        Alert.alert('Erro', 'As chaves fornecidas são inválidas para a conta real. Verifique as chaves e tente novamente.');
+      } else {
+        Alert.alert('Erro', 'Não foi possível verificar as chaves. Verifique a conexão e tente novamente.');
+      }
+    }
+  };
+
   const handleConfirmRealAccount = () => {
     if (apiKey === '' || secretKey === '') {
       Alert.alert('Erro', 'Por favor, insira sua API Key e Secret Key.');
       return;
     }
-    setApiUrl(MAINNET_API_URL); // Mudar para a URL da API de produção
-    setIsModalVisible(false);
+    verifyKeys(); // Verifica se as chaves fornecidas são válidas para a conta real
   };
 
   useEffect(() => {
@@ -105,6 +124,14 @@ export default function App() {
     navigation.replace('Conversor');
   }
 
+  const handleInfoModal = () => {
+    setIsInfoModalVisible(true); // Abre o modal de informações
+  };
+
+  const closeModal = () => {
+    setIsInfoModalVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
@@ -114,7 +141,7 @@ export default function App() {
       <TouchableOpacity style={styles.chartButton} onPress={() => navigation.navigate('CandlestickChart')}>
         <Icon name="trending-up" size={24} color="#fff" />
       </TouchableOpacity>
-      
+
       <Text style={styles.header}>BotCrypto</Text>
 
       <Text style={styles.label}>Preço Atual: {price ? `$${price}` : '---'}</Text>
@@ -123,6 +150,10 @@ export default function App() {
 
       <TouchableOpacity style={styles.button} onPress={toggleTrading}>
         <Text style={styles.buttonText}>{isRunning ? "Parar" : "Iniciar"}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.infoButton} onPress={handleInfoModal}>
+        <Text style={styles.infoButtonText}>Como Ativar Bot</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.realAccountButton} onPress={handleRealAccount}>
@@ -158,6 +189,30 @@ export default function App() {
           </TouchableOpacity>
         </View>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isInfoModalVisible}
+        onRequestClose={() => setIsInfoModalVisible(false)}
+      >
+        <View style={styles.infoModalView}>
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
+            <Text style={styles.infoText}>Para ativar o bot, siga os seguintes passos:</Text>
+            <Text style={styles.infoText}>1. Acesse sua conta na Binance.</Text>
+            <Text style={styles.infoText}>2. Navegue até o menu "Gerenciamento de API" em "Segurança".</Text>
+            <Text style={styles.infoText}>3. Crie uma nova chave de API nomeando-a conforme sua preferência.</Text>
+            <Text style={styles.infoText}>4. Após criar, copie a API Key e Secret Key.</Text>
+            <Text style={styles.infoText}>5. Volte ao app e cole as chaves no modal da "Conta Real".</Text>
+            <Text style={styles.infoText}>6. Certifique-se de que a chave tem permissão de "Trading".</Text>
+            <Text style={styles.infoText}>7. Pressione "Confirmar" para verificar as chaves.</Text>
+          </ScrollView>
+
+          <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
+            <Text style={styles.modalButtonText}>Fechar</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -167,91 +222,104 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    padding: 10,
-  },
-  chartButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    padding: 10,
+    backgroundColor: '#333',
   },
   header: {
-    fontSize: 32,
+    fontSize: 24,
     color: '#fff',
     marginBottom: 20,
   },
   label: {
     fontSize: 18,
     color: '#fff',
-    marginVertical: 5,
+    marginBottom: 10,
   },
   button: {
-    width: '80%',
+    backgroundColor: '#007aff',
     padding: 15,
-    marginTop: 20,
-    borderWidth: 2,
-    borderColor: '#FFA500', // Laranja
-    borderRadius: 10, // Arredondamento das bordas
-    backgroundColor: '#000', // Preto
+    borderRadius: 5,
+    width: '80%',
     alignItems: 'center',
+    marginBottom: 20,
   },
   buttonText: {
-    color: '#FFA500', // Laranja
+    color: '#fff',
     fontSize: 18,
   },
   realAccountButton: {
-    width: '80%',
+    backgroundColor: '#ff3b30',
     padding: 15,
-    marginTop: 10,
-    borderWidth: 2,
-    borderColor: '#FF4500', // Vermelho laranja para diferenciar
-    borderRadius: 10,
-    backgroundColor: '#000',
+    borderRadius: 5,
+    width: '80%',
     alignItems: 'center',
   },
   realAccountButtonText: {
-    color: '#FF4500', // Vermelho laranja
+    color: '#fff',
     fontSize: 18,
   },
-  modalView: {
-    marginTop: '50%',
-    backgroundColor: '#333',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
   input: {
-    width: '100%',
-    padding: 10,
-    marginVertical: 10,
-    backgroundColor: '#fff',
+    width: '80%',
+    backgroundColor: '#555',
+    padding: 15,
     borderRadius: 5,
-    fontSize: 16,
+    color: '#fff',
+    marginBottom: 20,
+  },
+  modalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    padding: 20,
   },
   modalButton: {
-    marginTop: 15,
-    padding: 10,
-    backgroundColor: '#FFA500',
+    backgroundColor: '#007aff',
+    padding: 15,
     borderRadius: 5,
-    width: '100%',
+    width: '80%',
     alignItems: 'center',
   },
   modalButtonText: {
     color: '#fff',
     fontSize: 18,
+  },
+  infoButton: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 5,
+    width: '80%',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  infoButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+  infoModalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    padding: 20,
+  },
+  infoText: {
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 15,
+  },
+  scrollViewContent: {
+    alignItems: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
+  },
+  chartButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 1,
   },
 });
