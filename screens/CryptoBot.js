@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import Icon from 'react-native-vector-icons/Ionicons'; // Ícone de seta para voltar
 
-
 const SYMBOL = "BTCUSDT";
 const QUANTITY = 0.001;
-const API_URL = "https://testnet.binance.vision";//https://api.binance.com";
+const TESTNET_API_URL = "https://testnet.binance.vision";
+const MAINNET_API_URL = "https://api.binance.com";
+
+// Chaves da Testnet
+const TESTNET_API_KEY = "fCOiIKNzWF4YOeLA0FEqhkohKgQ4dAsMfztSpDZ9GBnGIbCFybBH7rmk2llhJIGX";
+const TESTNET_SECRET_KEY = "La5la0DNSqRWRF14OA95Fj4OYXbZp12U3V539Apil6Ps7eu2Ldby5Jzg6Gaxqyiy";
 
 let intervalId;
 
@@ -19,8 +23,10 @@ export default function App() {
   const [sma, setSma] = useState(null);
   const [isOpened, setIsOpened] = useState(false);
   const [balance, setBalance] = useState(0);
-  const [apiKey, setApiKey] = useState('');
-  const [secretKey, setSecretKey] = useState('');
+  const [apiKey, setApiKey] = useState(TESTNET_API_KEY); // Padrão para Testnet
+  const [secretKey, setSecretKey] = useState(TESTNET_SECRET_KEY); // Padrão para Testnet
+  const [apiUrl, setApiUrl] = useState(TESTNET_API_URL); // Padrão para Testnet
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const calcSMA = (data) => {
     const closes = data.map(candle => parseFloat(candle[4]));
@@ -29,7 +35,7 @@ export default function App() {
   };
 
   const startTrading = async () => {
-    const { data } = await axios.get(`${API_URL}/api/v3/klines?limit=21&interval=15m&symbol=${SYMBOL}`);
+    const { data } = await axios.get(`${apiUrl}/api/v3/klines?limit=21&interval=15m&symbol=${SYMBOL}`);
     const candle = data[data.length - 1];
     const currentPrice = parseFloat(candle[4]);
     setPrice(currentPrice);
@@ -57,7 +63,7 @@ export default function App() {
 
     try {
       const { data } = await axios.post(
-        `${API_URL}/api/v3/order`,
+        `${apiUrl}/api/v3/order`,
         new URLSearchParams(order).toString(),
         {
           headers: { "X-MBX-APIKEY": apiKey }
@@ -70,17 +76,25 @@ export default function App() {
   };
 
   const toggleTrading = () => {
-    if (apiKey === '' || secretKey === '') {
-      Alert.alert('Erro', 'Por favor, insira sua API Key e Secret Key.');
-      return;
-    }
-
     if (isRunning) {
       clearInterval(intervalId);
     } else {
       intervalId = setInterval(startTrading, 3000);
     }
     setIsRunning(!isRunning);
+  };
+
+  const handleRealAccount = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleConfirmRealAccount = () => {
+    if (apiKey === '' || secretKey === '') {
+      Alert.alert('Erro', 'Por favor, insira sua API Key e Secret Key.');
+      return;
+    }
+    setApiUrl(MAINNET_API_URL); // Mudar para a URL da API de produção
+    setIsModalVisible(false);
   };
 
   useEffect(() => {
@@ -102,23 +116,6 @@ export default function App() {
       </TouchableOpacity>
       
       <Text style={styles.header}>BotCrypto</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="API Key"
-        placeholderTextColor="#888"
-        value={apiKey}
-        onChangeText={setApiKey}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Secret Key"
-        placeholderTextColor="#888"
-        secureTextEntry={true}
-        value={secretKey}
-        onChangeText={setSecretKey}
-      />
 
       <Text style={styles.label}>Preço Atual: {price ? `$${price}` : '---'}</Text>
       <Text style={styles.label}>SMA: {sma ? `$${sma}` : '---'}</Text>
@@ -127,6 +124,40 @@ export default function App() {
       <TouchableOpacity style={styles.button} onPress={toggleTrading}>
         <Text style={styles.buttonText}>{isRunning ? "Parar" : "Iniciar"}</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.realAccountButton} onPress={handleRealAccount}>
+        <Text style={styles.realAccountButtonText}>Conta Real</Text>
+      </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalView}>
+          <TextInput
+            style={styles.input}
+            placeholder="API Key"
+            placeholderTextColor="#888"
+            value={apiKey}
+            onChangeText={setApiKey}
+          />
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Secret Key"
+            placeholderTextColor="#888"
+            secureTextEntry={true}
+            value={secretKey}
+            onChangeText={setSecretKey}
+          />
+
+          <TouchableOpacity style={styles.modalButton} onPress={handleConfirmRealAccount}>
+            <Text style={styles.modalButtonText}>Confirmar</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -155,16 +186,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginBottom: 20,
   },
-  input: {
-    width: '80%',
-    padding: 10,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 5,
-    color: '#fff',
-    backgroundColor: '#333',
-  },
   label: {
     fontSize: 18,
     color: '#fff',
@@ -184,5 +205,53 @@ const styles = StyleSheet.create({
     color: '#FFA500', // Laranja
     fontSize: 18,
   },
+  realAccountButton: {
+    width: '80%',
+    padding: 15,
+    marginTop: 10,
+    borderWidth: 2,
+    borderColor: '#FF4500', // Vermelho laranja para diferenciar
+    borderRadius: 10,
+    backgroundColor: '#000',
+    alignItems: 'center',
+  },
+  realAccountButtonText: {
+    color: '#FF4500', // Vermelho laranja
+    fontSize: 18,
+  },
+  modalView: {
+    marginTop: '50%',
+    backgroundColor: '#333',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    marginVertical: 10,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    fontSize: 16,
+  },
+  modalButton: {
+    marginTop: 15,
+    padding: 10,
+    backgroundColor: '#FFA500',
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
 });
-
