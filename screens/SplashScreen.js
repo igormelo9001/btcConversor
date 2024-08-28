@@ -1,15 +1,12 @@
-
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Image } from 'react-native';
+import { StyleSheet, View, Image, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import { LinearGradient } from 'expo-linear-gradient'; // Importando o LinearGradient do Expo
 
 const SplashScreen = () => {
-
-   const navigation = useNavigation();
+  const navigation = useNavigation();
 
   useEffect(() => {
-    // Navega para a tela principal após 3 segundosd
     const timer = setTimeout(() => {
       navigation.replace('Conversor');
     }, 3000); // 3 segundos
@@ -18,12 +15,16 @@ const SplashScreen = () => {
   }, [navigation]);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#f7931a', '#d87c08']} // Gradiente de laranja claro para escuro
+      style={styles.container}
+    >
       <Image
         source={require('../assets/bitcoin.jpg')}
         style={styles.logo}
       />
-    </View>
+      <Text style={styles.text}>CryptoMaster</Text> 
+    </LinearGradient>
   );
 };
 
@@ -32,12 +33,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f7931a', // Laranja do Bitcoin
   },
   logo: {
     width: 200,
     height: 200,
     resizeMode: 'contain',
+  },
+  text: {
+    marginTop: 20,
+    fontSize: 24,
+    color: '#fff', // Branco para contraste com o fundo
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
   },
 });
 
